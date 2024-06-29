@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.image.BufferedImage;
+import java.util.regex.Pattern;
 import javax.swing.JPanel;
 
 public class TextBox extends JPanel implements KeyListener {
@@ -60,21 +61,40 @@ public class TextBox extends JPanel implements KeyListener {
         }
     }
 
+    public int findWordStart(int position){
+        while (position > 0 && Character.isWhitespace(text.charAt(position - 1))) { 
+            position -= 1;
+        }
+
+        while (position > 0 && !isWordBoundary(text.charAt(position - 1))) { 
+            position -=1;
+        }
+        return position;
+    }
+
+    public boolean isWordBoundary(char c){
+        String regex = "[ \\t\\n.,;:!?\\s]";
+        return Pattern.matches(regex, Character.toString(c));
+    }
+
     @Override
     public void keyPressed(KeyEvent e) {
         if (e.isControlDown()) {
             switch(e.getKeyCode()){
                 case KeyEvent.VK_BACK_SPACE:
                 if(cursorPosition > 0){
-                    while (!Character.isWhitespace(text.charAt(cursorPosition - 1))) { 
-                        text.deleteCharAt(cursorPosition - 1);
-                        cursorPosition--;
-                    }
+                    int startPosition = findWordStart(cursorPosition) + 1; //leaves one whitespace after deleting a whole word
+                    int endPosition = cursorPosition;
+                    text.delete(startPosition, endPosition);
+                    cursorPosition = startPosition;
                 }
                     break;
     
                 case KeyEvent.VK_LEFT:
                 if(cursorPosition > 0){
+                    while (!Character.isWhitespace(text.charAt(cursorPosition - 1))){
+                        cursorPosition--;    
+                    }
                     cursorPosition--;
                 }
                     break;
@@ -83,7 +103,11 @@ public class TextBox extends JPanel implements KeyListener {
                 if(cursorPosition < text.length()){
                     cursorPosition++;
                 }
-                    break;            
+                    break;     
+                    
+                case KeyEvent.VK_ENTER:
+                text.append("\n");
+                break;
             }
             repaint();
         }
