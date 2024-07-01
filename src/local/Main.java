@@ -1,3 +1,4 @@
+import java.awt.BorderLayout;
 import java.awt.Color;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
@@ -15,6 +16,6 @@ public class Main {
         frame.setSize(800, 600);
         frame.setLocation(120, 60);
         frame.setVisible(true);
-        frame.getContentPane().add(jScrollPane).setBackground(Color.DARK_GRAY);
+        frame.getContentPane().add(jScrollPane, BorderLayout.CENTER);
     }
 }

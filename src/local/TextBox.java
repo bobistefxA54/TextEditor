@@ -54,82 +54,102 @@ public class TextBox extends JPanel implements KeyListener {
     @Override
     public void keyTyped(KeyEvent e) {
         char c = e.getKeyChar();
-        if (Character.isLetterOrDigit(c) || Character.isWhitespace(c)){
+        if (Character.isLetterOrDigit(c) || Character.isWhitespace(c)) {
             text.insert(cursorPosition, c);
             cursorPosition++;
             repaint();
         }
     }
 
-    public int findWordStart(int position){
-        while (position > 0 && Character.isWhitespace(text.charAt(position - 1))) { 
+    public int findWordStart(int position) {
+        while (position > 0 && Character.isWhitespace(text.charAt(position - 1))) {
             position -= 1;
         }
 
-        while (position > 0 && !isWordBoundary(text.charAt(position - 1))) { 
-            position -=1;
+        while (position > 0 && !isWordBoundary(text.charAt(position - 1))) {
+            position -= 1;
         }
-        return position;
+        return position + 1; // the '+ 1' is intended in order to move to the first letter of the word as
+                             // opposed to one whitespace behind it
     }
 
-    public boolean isWordBoundary(char c){
+    public int findWordEnd(int position) {
+        while (position < text.length() && Character.isWhitespace(text.charAt(position))) {
+            position++;
+        }
+
+        while (position < text.length() && !isWordBoundary(text.charAt(position))) {
+            position++;
+        }
+        return position - 1;
+    }
+
+    public boolean isWordBoundary(char c) {
         String regex = "[ \\t\\n.,;:!?\\s]";
         return Pattern.matches(regex, Character.toString(c));
     }
 
     @Override
     public void keyPressed(KeyEvent e) {
+        int startPosition;
+        int endPosition;
         if (e.isControlDown()) {
-            switch(e.getKeyCode()){
+            switch (e.getKeyCode()) {
                 case KeyEvent.VK_BACK_SPACE:
-                if(cursorPosition > 0){
-                    int startPosition = findWordStart(cursorPosition) + 1; //leaves one whitespace after deleting a whole word
-                    int endPosition = cursorPosition;
+                    startPosition = findWordStart(cursorPosition);
+                    endPosition = cursorPosition;
                     text.delete(startPosition, endPosition);
                     cursorPosition = startPosition;
-                }
+
                     break;
-    
+
+                case KeyEvent.VK_DELETE:
+                    endPosition = findWordEnd(cursorPosition);
+                    text.delete(cursorPosition, endPosition);
+
                 case KeyEvent.VK_LEFT:
-                if(cursorPosition > 0){
-                    while (!Character.isWhitespace(text.charAt(cursorPosition - 1))){
-                        cursorPosition--;    
-                    }
-                    cursorPosition--;
-                }
+                    cursorPosition = findWordStart(cursorPosition);
                     break;
-    
+
                 case KeyEvent.VK_RIGHT:
-                if(cursorPosition < text.length()){
-                    cursorPosition++;
-                }
-                    break;     
-                    
-                case KeyEvent.VK_ENTER:
-                text.append("\n");
-                break;
+                    cursorPosition = findWordEnd(cursorPosition);
+                    break;
+
             }
             repaint();
         }
-        switch(e.getKeyCode()){
+        switch (e.getKeyCode()) {
             case KeyEvent.VK_BACK_SPACE:
-            if(cursorPosition > 0){
-                text.deleteCharAt(cursorPosition - 1);
-                cursorPosition--;
-            }
+                if (cursorPosition > 0) {
+                    text.deleteCharAt(cursorPosition - 1);
+                    cursorPosition--;
+                }
+                break;
+
+            case KeyEvent.VK_DELETE:
+                if (cursorPosition < text.length()) {
+                    text.deleteCharAt(cursorPosition);
+                }
                 break;
 
             case KeyEvent.VK_LEFT:
-            if(cursorPosition > 0){
-                cursorPosition--;
-            }
+                if (cursorPosition > 0) {
+                    cursorPosition--;
+                }
                 break;
 
             case KeyEvent.VK_RIGHT:
-            if(cursorPosition < text.length()){
+                if (cursorPosition < text.length()) {
+                    cursorPosition++;
+                }
+                break;
+
+            case KeyEvent.VK_ENTER:
+                if (cursorPosition >= 0) {
+                    text.insert(cursorPosition, "\n");
+                }
                 cursorPosition++;
-            }
-                break;            
+                break;
         }
         repaint();
     }
